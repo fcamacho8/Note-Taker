@@ -1,34 +1,46 @@
 var express = require("express");
 var path = require("path");
 var fs = require("fs");
+var db = require("./db/db.json")
+
 
 var app = express();
-var PORT = process.env.PORT || 8080;
+var PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"))
 
-//--HTML-Routes--//
+
+
+app.get("/api/notes", function (req, res) {
+    
+    return res.json(db);
+});
+
+
+app.post("/api/notes", (req, res) => {
+    var note = req.body;
+    note.id = db.length
+    db.push(note);
+
+    fs.writeFile("./db/db.json", JSON.stringify(db), function (err) {
+        if (err) return console.log(err);
+    });
+
+});
+
 
 app.get("/notes", (req, res) => {
-    res.sendfile(path.join(__dirname, "/public/notes.html"));
+    res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
 
 app.get("*", (req, res) => {
-    res.sendfile(path.join(__dirname, "/public/index.html"));
+    res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
-app.listen(PORT, function () {
+
+app.listen(PORT, () => {
     console.log("App listening on PORT " + PORT);
-    
+
 })
-
-//--API Routes--//
-
-app.get("/api/notes", function (req, res) {
-    fs.readFile(path.join(__dirname, "/db/db.json"), "utf-8", (err, data) => {
-        if (err) throw err;
-        return res.json(data);
-    });
-});
